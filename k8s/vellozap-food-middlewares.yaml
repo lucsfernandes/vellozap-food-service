@@ -1,0 +1,29 @@
+# Traefik middlewares for the vellozap-food backend (API) IngressRoute.
+#
+# CORS is intentionally NOT handled here. The Express app already sets CORS
+# headers (cors + helmet) with credentials enabled and a single allowed origin
+# (CORS_ORIGIN = https://vellozap-food.arcobatrox.com.br). Adding a Traefik
+# cors-headers middleware would emit a SECOND Access-Control-Allow-Origin header
+# (browsers reject duplicates) and a wildcard origin is incompatible with
+# credentialed requests. So we keep only the HTTP->HTTPS and www->apex redirects
+# here and let the application own CORS.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: vellozap-food-api-redirect-to-https
+  namespace: vellozap-food
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: vellozap-food-api-redirect-www
+  namespace: vellozap-food
+spec:
+  redirectRegex:
+    regex: ^https?://www\.(.*)
+    replacement: https://${1}
+    permanent: true

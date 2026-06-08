@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vellozap-food-service
+  namespace: vellozap-food
+  labels:
+    app.kubernetes.io/name: vellozap-food-service
+    app.kubernetes.io/part-of: arcobatrox
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vellozap-food-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: http
+      name: http

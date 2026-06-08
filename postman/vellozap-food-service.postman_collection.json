@@ -1,0 +1,1087 @@
+{
+  "info": {
+    "name": "VellozapFood Service API",
+    "_postman_id": "a1b2c3d4-0000-4000-8000-vellozapfood1",
+    "description": "Coleção das rotas REST do backend `vellozap-food-service` (Express + routing-controllers).\n\n## Configuração\n- `baseUrl` (default `http://localhost:3333`) e `apiPrefix` (default `/api`) são variáveis da coleção.\n- A maioria das rotas exige autenticação JWT via header `Authorization: Bearer {{accessToken}}` (papel `owner`).\n- As rotas em **Auth** (`/login`, `/signup`) gravam automaticamente o `accessToken` nas variáveis da coleção via script de teste.\n- O refresh token é entregue via cookie httpOnly (`POST /auth/refresh` funciona sem corpo se o cookie estiver presente).\n- Rotas em **Public** e **WhatsApp Webhook** são públicas (sem autenticação).\n\nGerado a partir do mapeamento dos controllers em `src/interfaces/http/controllers/`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3333", "type": "string" },
+    { "key": "apiPrefix", "value": "/api", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "restaurantId", "value": "", "type": "string" },
+    { "key": "productId", "value": "", "type": "string" },
+    { "key": "employeeId", "value": "", "type": "string" },
+    { "key": "orderId", "value": "", "type": "string" },
+    { "key": "orderItemId", "value": "", "type": "string" },
+    { "key": "paymentId", "value": "", "type": "string" },
+    { "key": "promotionId", "value": "", "type": "string" },
+    { "key": "conversationId", "value": "", "type": "string" },
+    { "key": "workRecordId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/health",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Sign up",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  if (json.restaurant && json.restaurant.id) pm.collectionVariables.set('restaurantId', json.restaurant.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"secret123\",\n  \"restaurantName\": \"Meu Restaurante\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/signup",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/login",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh tokens",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "O refresh token normalmente vem do cookie httpOnly. Envie `refreshToken` no corpo apenas se não usar cookies.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/refresh",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/logout",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Current user (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/auth/me",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restaurant",
+      "item": [
+        {
+          "name": "Get my restaurant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/restaurant/me",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["restaurant", "me"]
+            }
+          }
+        },
+        {
+          "name": "Update my restaurant",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant_name\": \"Meu Restaurante\",\n  \"phone\": \"11999999999\",\n  \"address\": \"Rua Exemplo, 123\",\n  \"responsible_name\": \"João Silva\",\n  \"cnpj\": \"00.000.000/0001-00\",\n  \"email\": \"contato@example.com\",\n  \"delivery_type\": \"delivery\",\n  \"whatsapp_number\": \"11999999999\",\n  \"delivery_radius\": \"5\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/restaurant/me",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["restaurant", "me"]
+            }
+          }
+        },
+        {
+          "name": "Upload logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": [] }]
+            },
+            "description": "Upload multipart/form-data com o campo `file` (imagem). Máx. 10MB.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/restaurant/me/logo",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["restaurant", "me", "logo"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Onboarding",
+      "item": [
+        {
+          "name": "Get onboarding progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/onboarding/progress",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["onboarding", "progress"]
+            }
+          }
+        },
+        {
+          "name": "Mark step complete",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/onboarding/progress/:stepName/complete",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["onboarding", "progress", ":stepName", "complete"],
+              "variable": [{ "key": "stepName", "value": "restaurant_profile" }]
+            }
+          }
+        },
+        {
+          "name": "Complete onboarding",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/onboarding/complete",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["onboarding", "complete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operating Hours",
+      "item": [
+        {
+          "name": "Get operating hours",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/operating-hours",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["operating-hours"]
+            }
+          }
+        },
+        {
+          "name": "Replace operating hours",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  { \"day_of_week\": 0, \"is_open\": false, \"open_time\": null, \"close_time\": null },\n  { \"day_of_week\": 1, \"is_open\": true, \"open_time\": \"09:00\", \"close_time\": \"18:00\" },\n  { \"day_of_week\": 2, \"is_open\": true, \"open_time\": \"09:00\", \"close_time\": \"18:00\" }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/operating-hours",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["operating-hours"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/products?available=true&category=lanche&limit=50",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "available", "value": "true", "disabled": true },
+                { "key": "category", "value": "lanche", "disabled": true },
+                { "key": "limit", "value": "50", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/products/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["products", ":id"],
+              "variable": [{ "key": "id", "value": "{{productId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X-Burger\",\n  \"description\": \"Hambúrguer artesanal\",\n  \"price\": 2500,\n  \"is_available\": true,\n  \"stock_quantity\": 100,\n  \"category\": \"lanche\",\n  \"size\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`price` em centavos (inteiro). `category` deve ser um dos enums PRODUCT_CATEGORIES.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/products",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["products"]
+            }
+          }
+        },
+        {
+          "name": "Update product",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"X-Burger Especial\",\n  \"price\": 2900,\n  \"is_available\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/products/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["products", ":id"],
+              "variable": [{ "key": "id", "value": "{{productId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Delete product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/products/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["products", ":id"],
+              "variable": [{ "key": "id", "value": "{{productId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Upload product image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": [] }]
+            },
+            "description": "Upload multipart/form-data com o campo `file` (imagem).",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/products/:id/image",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["products", ":id", "image"],
+              "variable": [{ "key": "id", "value": "{{productId}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees?role=garcom",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees"],
+              "query": [{ "key": "role", "value": "garcom", "disabled": true }]
+            }
+          }
+        },
+        {
+          "name": "Get employee",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees", ":id"],
+              "variable": [{ "key": "id", "value": "{{employeeId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Create employee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maria Souza\",\n  \"role\": \"garcom\",\n  \"phone\": \"11988888888\",\n  \"email\": \"maria@example.com\",\n  \"payment_type\": \"monthly\",\n  \"payment_value\": 200000,\n  \"pix_key\": \"maria@example.com\",\n  \"bank_name\": \"Banco X\",\n  \"agency\": \"0001\",\n  \"account\": \"12345-6\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`payment_value` em centavos. `payment_type` deve ser um enum EMPLOYEE_PAYMENT_TYPES.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees"]
+            }
+          }
+        },
+        {
+          "name": "Update employee",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maria Souza Lima\",\n  \"payment_value\": 220000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees", ":id"],
+              "variable": [{ "key": "id", "value": "{{employeeId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Delete employee",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees", ":id"],
+              "variable": [{ "key": "id", "value": "{{employeeId}}" }]
+            }
+          }
+        },
+        {
+          "name": "List work records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees/:employeeId/work-records?from=2026-06-01&to=2026-06-30",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees", ":employeeId", "work-records"],
+              "query": [
+                { "key": "from", "value": "2026-06-01", "disabled": true },
+                { "key": "to", "value": "2026-06-30", "disabled": true }
+              ],
+              "variable": [{ "key": "employeeId", "value": "{{employeeId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Create work record",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"work_date\": \"2026-06-07\",\n  \"hours_worked\": 8,\n  \"days_worked\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "É obrigatório informar `hours_worked` OU `days_worked`. `work_date` no formato YYYY-MM-DD.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees/:employeeId/work-records",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees", ":employeeId", "work-records"],
+              "variable": [{ "key": "employeeId", "value": "{{employeeId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Delete work record",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/employees/:employeeId/work-records/:recordId",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["employees", ":employeeId", "work-records", ":recordId"],
+              "variable": [
+                { "key": "employeeId", "value": "{{employeeId}}" },
+                { "key": "recordId", "value": "{{workRecordId}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "List orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders?status=pendente&from=2026-06-01&to=2026-06-30&page=1",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders"],
+              "query": [
+                { "key": "status", "value": "pendente", "disabled": true },
+                { "key": "from", "value": "2026-06-01", "disabled": true },
+                { "key": "to", "value": "2026-06-30", "disabled": true },
+                { "key": "page", "value": "1", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Order stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/stats?period=hoje",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", "stats"],
+              "query": [{ "key": "period", "value": "hoje", "description": "hoje | semana | mes" }]
+            }
+          }
+        },
+        {
+          "name": "Get order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", ":id"],
+              "variable": [{ "key": "id", "value": "{{orderId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Update order status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"preparando\"\n}"
+            },
+            "description": "`status` deve ser um dos enums ORDER_STATUSES.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/:id/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", ":id", "status"],
+              "variable": [{ "key": "id", "value": "{{orderId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Export orders",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"format\": \"csv\",\n  \"period\": 30,\n  \"from\": \"2026-06-01\",\n  \"to\": \"2026-06-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`format`: csv | pdf. Retorna arquivo como anexo.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/export",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", "export"]
+            }
+          }
+        },
+        {
+          "name": "List order items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/:orderId/items",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", ":orderId", "items"],
+              "variable": [{ "key": "orderId", "value": "{{orderId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Add order item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": \"00000000-0000-0000-0000-000000000000\",\n  \"quantity\": 2,\n  \"notes\": \"Sem cebola\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/:orderId/items",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", ":orderId", "items"],
+              "variable": [{ "key": "orderId", "value": "{{orderId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Update order item",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3,\n  \"notes\": \"Bem passado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/:orderId/items/:itemId",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", ":orderId", "items", ":itemId"],
+              "variable": [
+                { "key": "orderId", "value": "{{orderId}}" },
+                { "key": "itemId", "value": "{{orderItemId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete order item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/orders/:orderId/items/:itemId",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["orders", ":orderId", "items", ":itemId"],
+              "variable": [
+                { "key": "orderId", "value": "{{orderId}}" },
+                { "key": "itemId", "value": "{{orderItemId}}" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Calculate employee payments",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"current_month\",\n  \"from\": \"2026-06-01\",\n  \"to\": \"2026-06-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`period`: current_month | last_month | custom. `from`/`to` usados quando period=custom.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/payments/calculate",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["payments", "calculate"]
+            }
+          }
+        },
+        {
+          "name": "List payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/payments?status=pending&from=2026-06-01&to=2026-06-30",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["payments"],
+              "query": [
+                { "key": "status", "value": "pending", "disabled": true },
+                { "key": "from", "value": "2026-06-01", "disabled": true },
+                { "key": "to", "value": "2026-06-30", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark payment paid",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/payments/:id/pay",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["payments", ":id", "pay"],
+              "variable": [{ "key": "id", "value": "{{paymentId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Export payments",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"format\": \"csv\",\n  \"from\": \"2026-06-01\",\n  \"to\": \"2026-06-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`format` é sempre `csv`. `from` e `to` obrigatórios.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/payments/export",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["payments", "export"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delivery",
+      "item": [
+        {
+          "name": "Get delivery zones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/delivery/zones",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["delivery", "zones"]
+            }
+          }
+        },
+        {
+          "name": "Replace delivery zones",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  { \"minDistance\": 0, \"maxDistance\": 3, \"price\": 500, \"description\": \"Até 3km\" },\n  { \"minDistance\": 3, \"maxDistance\": 6, \"price\": 900, \"description\": \"3 a 6km\" }\n]",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`price` em centavos. `minDistance` <= `maxDistance`.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/delivery/zones",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["delivery", "zones"]
+            }
+          }
+        },
+        {
+          "name": "Calculate delivery fee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"originCep\": \"01001000\",\n  \"customerCep\": \"04567000\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/delivery/calculate",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["delivery", "calculate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Export",
+      "item": [
+        {
+          "name": "Export orders",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"format\": \"csv\",\n  \"period\": 30,\n  \"from\": \"2026-06-01\",\n  \"to\": \"2026-06-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`format`: csv | pdf. Retorna arquivo como anexo.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/export/orders",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["export", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Export payments",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"format\": \"csv\",\n  \"from\": \"2026-06-01\",\n  \"to\": \"2026-06-30\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`format` é sempre `csv`. `from` e `to` obrigatórios.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/export/payments",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["export", "payments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Promotions",
+      "item": [
+        {
+          "name": "List promotions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/promotions",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["promotions"]
+            }
+          }
+        },
+        {
+          "name": "Create promotion",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Combo Almoço\",\n  \"type\": \"percentage\",\n  \"discount\": 1000,\n  \"products\": [],\n  \"validFrom\": \"2026-06-01\",\n  \"validTo\": \"2026-06-30\",\n  \"active\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`discount` em centavos (ou pontos percentuais conforme `type`).",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/promotions",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["promotions"]
+            }
+          }
+        },
+        {
+          "name": "Update promotion",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Combo Almoço Premium\",\n  \"active\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/promotions/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["promotions", ":id"],
+              "variable": [{ "key": "id", "value": "{{promotionId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Delete promotion",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/promotions/:id",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["promotions", ":id"],
+              "variable": [{ "key": "id", "value": "{{promotionId}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "WhatsApp",
+      "item": [
+        {
+          "name": "List conversations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/whatsapp/conversations?status=open",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["whatsapp", "conversations"],
+              "query": [{ "key": "status", "value": "open", "disabled": true, "description": "enum CONVERSATION_STATUSES" }]
+            }
+          }
+        },
+        {
+          "name": "List conversation messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/whatsapp/conversations/:id/messages",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["whatsapp", "conversations", ":id", "messages"],
+              "variable": [{ "key": "id", "value": "{{conversationId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Send message to conversation",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Olá! Seu pedido está a caminho.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/whatsapp/conversations/:id/messages",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["whatsapp", "conversations", ":id", "messages"],
+              "variable": [{ "key": "id", "value": "{{conversationId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Send direct message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"5511999999999\",\n  \"text\": \"Mensagem direta\",\n  \"template\": {\n    \"name\": \"welcome\",\n    \"params\": { \"customer\": \"João\" }\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "`template` é opcional.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/whatsapp/messages/send",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["whatsapp", "messages", "send"]
+            }
+          }
+        },
+        {
+          "name": "WhatsApp status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/whatsapp/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["whatsapp", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "WhatsApp Webhook (público)",
+      "item": [
+        {
+          "name": "Evolution webhook",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"messages.upsert\",\n  \"data\": {}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Webhook público do provedor Evolution. A assinatura é verificada via header secreto (EVOLUTION_WEBHOOK_SECRET). Sempre responde 200.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/whatsapp/webhook/evolution",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["whatsapp", "webhook", "evolution"]
+            }
+          }
+        },
+        {
+          "name": "n8n webhook",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"message\",\n  \"data\": {}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Webhook público do provedor n8n. A assinatura é verificada via header secreto (N8N_WEBHOOK_SECRET). Sempre responde 200.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/whatsapp/webhook/n8n",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["whatsapp", "webhook", "n8n"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public (digital menu)",
+      "item": [
+        {
+          "name": "Get public menu",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/public/restaurants/:restaurantId/menu",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["public", "restaurants", ":restaurantId", "menu"],
+              "variable": [{ "key": "restaurantId", "value": "{{restaurantId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Create public order (checkout)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer\": {\n    \"name\": \"Cliente Teste\",\n    \"phone\": \"11999999999\",\n    \"address\": \"Rua A\",\n    \"neighborhood\": \"Centro\",\n    \"number\": \"100\",\n    \"complement\": \"Apto 2\",\n    \"reference\": \"Próximo à praça\",\n    \"cep\": \"01001000\"\n  },\n  \"items\": [\n    { \"product_id\": \"00000000-0000-0000-0000-000000000000\", \"quantity\": 1, \"notes\": \"\" }\n  ],\n  \"payment_method\": \"dinheiro\",\n  \"notes\": \"Entregar rápido\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Checkout público. `payment_method` deve ser um enum PAYMENT_METHODS. `product_id` em formato UUID.",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/public/restaurants/:restaurantId/orders",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["public", "restaurants", ":restaurantId", "orders"],
+              "variable": [{ "key": "restaurantId", "value": "{{restaurantId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Get public order status",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/public/orders/:orderId/status",
+              "host": ["{{baseUrl}}{{apiPrefix}}"],
+              "path": ["public", "orders", ":orderId", "status"],
+              "variable": [{ "key": "orderId", "value": "{{orderId}}" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

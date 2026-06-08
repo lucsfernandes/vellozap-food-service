@@ -1,0 +1,67 @@
+# One-shot job that runs TypeORM migrations against the Postgres database.
+# Apply this on every release after a schema change. The image is the same
+# backend image — we just invoke a different command (scripts/migrate.ts).
+#
+# Tracked separately from the Deployment so a rolling restart can wait for
+# migrations to complete (kubectl wait --for=condition=complete).
+#
+# IMPORTANT (Supabase): production points DATABASE_URL at the Supabase pooler.
+# The first migration is a Baseline that must already be STAMPED as applied
+# (scripts/baseline.ts) so its up() is skipped. Run this Job only after the
+# baseline is stamped; otherwise it may try to recreate existing tables.
+# Re-running is otherwise safe — TypeORM's `migrations` table is idempotent.
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vellozap-food-service-migrate
+  namespace: vellozap-food
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app: vellozap-food-service
+        job: migrate
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: REPLACE_IMAGE
+          imagePullPolicy: IfNotPresent
+          # Matches package.json "migration:run". Requires devDeps (@swc-node/register)
+          # to be present in the image, OR build a dist migrate entrypoint and call
+          # that instead. Adjust if your production image is deps-pruned.
+          command: ["node", "--import", "@swc-node/register/esm-register", "scripts/migrate.ts", "run"]
+          envFrom:
+            - configMapRef:
+                name: vellozap-food-service-config
+            - secretRef:
+                name: vellozap-food-service-secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+      volumes:
+        - name: tmp
+          emptyDir: {}

@@ -1,0 +1,31 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vellozap-food-service-ingress
+  namespace: vellozap-food
+  labels:
+    app.kubernetes.io/name: vellozap-food-service
+    app.kubernetes.io/part-of: arcobatrox
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`api.vellozap-food.arcobatrox.com.br`)
+      kind: Rule
+      middlewares:
+        - name: vellozap-food-api-redirect-to-https
+      services:
+        - name: vellozap-food-service
+          port: 80
+    # www -> apex (then redirect-to-https). Order matters: strip www first.
+    - match: Host(`www.api.vellozap-food.arcobatrox.com.br`)
+      kind: Rule
+      middlewares:
+        - name: vellozap-food-api-redirect-www
+        - name: vellozap-food-api-redirect-to-https
+      services:
+        - name: vellozap-food-service
+          port: 80
+  tls:
+    secretName: vellozap-food-service-tls

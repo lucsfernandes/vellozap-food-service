@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vellozap-food
+  labels:
+    app.kubernetes.io/name: vellozap-food
+    app.kubernetes.io/part-of: arcobatrox
+    app.kubernetes.io/managed-by: kustomize
+    pod-security.kubernetes.io/enforce: restricted

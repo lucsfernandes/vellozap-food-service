@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vellozap-food-service
+  namespace: vellozap-food
+  labels:
+    app.kubernetes.io/name: vellozap-food-service
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: arcobatrox
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vellozap-food-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vellozap-food-service
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: arcobatrox
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: vellozap-food-service
+          image: REPLACE_IMAGE
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - name: http
+              containerPort: 3333
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: vellozap-food-service-config
+            - secretRef:
+                name: vellozap-food-service-secret
+          # Writable /tmp emptyDir because readOnlyRootFilesystem is on. Local
+          # uploads (STORAGE_LOCAL_DIR=/tmp/uploads) also land here.
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "384Mi"
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+          # Single health endpoint: GET /api/health (HealthController under the
+          # /api routePrefix). Used for both liveness and readiness.
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3333
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3333
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: tmp
+          emptyDir: {}
