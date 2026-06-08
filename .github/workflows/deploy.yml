@@ -3,7 +3,7 @@ name: CI/CD Backend Deploy to VPS with K8s
 on:
   push:
    branches:
-    - master
+    - main
 
 jobs:
   deploy:
