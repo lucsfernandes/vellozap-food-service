@@ -25,22 +25,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASS }}
 
-      - name: Resolve image name
-        env:
-          DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
-        run: |
-          # Docker references must be lowercase [a-z0-9._-]; normalize and validate.
-          user="$(printf '%s' "$DOCKERHUB_USER" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')"
-          if [ -z "$user" ]; then
-            echo "::error::DOCKERHUB_USER secret is empty. Set it in the repository secrets."
-            exit 1
-          fi
-          echo "IMAGE_NAME=${user}/vellozap-food-service:${{ github.sha }}" >> "$GITHUB_ENV"
-
       - name: Build and push Docker image
         run: |
-          docker build -t "$IMAGE_NAME" .
-          docker push "$IMAGE_NAME"
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USER }}/vellozap-food-service:${{ github.sha }}
+          docker build -t $IMAGE_NAME .
+          docker push $IMAGE_NAME
 
       - name: Prepare kubeconfig
         env:
@@ -75,6 +64,7 @@ jobs:
       - name: Replace image placeholder
         run: |
           # IMAGE_NAME comes from the "Resolve image name" step via $GITHUB_ENV.
+          IMAGE_NAME=${{ secrets.DOCKERHUB_USER }}/vellozap-food-service:${{ github.sha }}
           sed -i "s|REPLACE_IMAGE|${IMAGE_NAME}|g" k8s/deployment.yaml
 
       - name: kubectl apply
