@@ -52,5 +52,5 @@ spec:
           protocol: TCP
         - port: 5432
           protocol: TCP
-        # - port: 6543
-        #   protocol: TCP
+        - port: 6543
+          protocol: TCP
